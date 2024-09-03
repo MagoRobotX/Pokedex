@@ -12,7 +12,7 @@ import retrofit2.Response
 class PokedexAdapter(
 
     var PokedexList: List<PokedexItemResponse> = emptyList(),
-    val onItemSelected: (String) -> Unit
+    private val onItemSelected: (String) -> Unit
 ) :
     RecyclerView.Adapter<PokedexViewHolder>() {
     fun updaterList(PokedexList: List<PokedexItemResponse>) {
@@ -20,17 +20,18 @@ class PokedexAdapter(
         notifyDataSetChanged()
     }
 
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PokedexViewHolder {
 
         return PokedexViewHolder(
             LayoutInflater.from(parent.context).inflate(R.layout.item_pokedez, parent, false),
-            onItemSelected
+
         )
     }
 
     override fun onBindViewHolder(viewholder: PokedexViewHolder, position: Int) {
         //val  item= PokedexList[position]
-        viewholder.bind(PokedexList[position])
+        viewholder.bind(PokedexList[position],onItemSelected)
 
     }
 

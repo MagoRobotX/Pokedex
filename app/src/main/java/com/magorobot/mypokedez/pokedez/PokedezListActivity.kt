@@ -3,11 +3,14 @@ package com.magorobot.mypokedez.pokedez
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.magorobot.mypokedez.databinding.ActivityPokedezListBinding
+import com.magorobot.mypokedez.pokedez.DetailPokemonActivity.Companion.EXTRA_ID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,9 +43,12 @@ class PokedezListActivity : AppCompatActivity() {
             override fun onQueryTextChange(newText: String?) = false
 
         })
-        adapter = PokedexAdapter{}
-        binding.rvPokedex.setHasFixedSize(false)
-        binding.rvPokedex.layoutManager = LinearLayoutManager(this)
+        // Inicializa el adaptador
+        adapter = PokedexAdapter {navigateToDetail(it)}
+
+        binding.rvPokedex.setHasFixedSize(true)
+        binding.rvPokedex.layoutManager = GridLayoutManager(this, 3) // 2 columnas en la cuadrícula
+        /** binding.rvPokedex.layoutManager = LinearLayoutManager(this) */
         binding.rvPokedex.adapter = adapter
 
     }
@@ -52,6 +58,7 @@ class PokedezListActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             var myResponse: Response<PokedexDataResponse> =
                 retrofit.create(ApiService::class.java).getPokedex(query)
+            //   retrofit.create(ApiService::class.java).getPokedez(query)
 
             if (myResponse.isSuccessful) {
                 Log.i("Magorobot", "funciona Pokemon :)")
@@ -59,8 +66,7 @@ class PokedezListActivity : AppCompatActivity() {
                 if (response != null) {
                     Log.i("Magorobot", response.toString())
                     runOnUiThread {
-                       adapter.updaterList(response.pokedex)
-
+                        adapter.updaterList(response.pokedex)
                         binding.Progressbar.isVisible = false
                     }
                 }
@@ -68,9 +74,8 @@ class PokedezListActivity : AppCompatActivity() {
 
 
                 Log.i("Magorobot", "No funciona :(")
-            }
         }
-
+    }
 
 
     private fun getRetrofit(): Retrofit {
@@ -80,6 +85,11 @@ class PokedezListActivity : AppCompatActivity() {
             //.baseUrl("https://superheroapi.com/") // Base URL para la API
             .addConverterFactory(GsonConverterFactory.create())// Conversor de JSON a objetos Kotlin
             .build()
+    }
+    private fun navigateToDetail(id:String){
+     val intent=Intent(this, DetailPokemonActivity::class.java)
+     intent.putExtra(EXTRA_ID,id)
+     startActivity(intent)
     }
 
 }

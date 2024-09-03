@@ -4,8 +4,8 @@ import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
 data class PokedexDataResponse(
+   @SerializedName("results") val pokedex: List<PokedexItemResponse>
 
-    @SerializedName("results") val pokedex: List<PokedexItemResponse>
 )
 
 

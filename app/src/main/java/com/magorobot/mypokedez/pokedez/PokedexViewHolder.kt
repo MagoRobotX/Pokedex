@@ -12,11 +12,12 @@ import retrofit2.Callback
 import retrofit2.Response
 
 
-class PokedexViewHolder(view: View, private val onItemSelected: (String) -> Unit
+class PokedexViewHolder(view: View
 ): RecyclerView.ViewHolder(view) {
     private val binding = ItemPokedezBinding.bind(view)
     private val imageView: ImageView = itemView.findViewById(R.id.ivPokeImag)
-    fun bind(PokedexItemResponse: PokedexItemResponse) {
+
+    fun bind(PokedexItemResponse: PokedexItemResponse, onItemSelected: (String) -> Unit) {
         // Asignar el nombre del Pokémon
         binding.tvPokedezName.text = PokedexItemResponse.namepokemon
     // Construir la URL correcta usando el ID del Pokémon
@@ -31,6 +32,7 @@ class PokedexViewHolder(view: View, private val onItemSelected: (String) -> Unit
         itemView.setOnClickListener {
             onItemSelected(PokedexItemResponse.namepokemon)
         }
+        binding.root.setOnClickListener { onItemSelected(PokedexItemResponse.namepokemon) }
     }
 
 }

@@ -1,10 +1,43 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="230dp"
+    android:layout_height="230dp"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_gravity="center_horizontal"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".pokedez.DetailPokemonActivity">
+    android:orientation="horizontal"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="8dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+    <FrameLayout
+
+        android:layout_width="230dp"
+        android:layout_height="230dp">
+
+        <ImageView
+            android:id="@+id/ivPokeImagen"
+            android:layout_width="230dp"
+            android:layout_height="230dp"
+             />
+
+        <FrameLayout
+            android:layout_width="230dp"
+            android:layout_height="30dp"
+            android:layout_gravity="bottom"
+            android:background="@color/material_dynamic_primary70">
+
+            <TextView
+                android:id="@+id/tvPokedezName"
+                android:layout_width="230dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="20dp"
+                tools:text="PRUEBA" />
+        </FrameLayout>
+
+    </FrameLayout>
+
+
+
+</androidx.cardview.widget.CardView>
