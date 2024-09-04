@@ -5,29 +5,23 @@ import com.google.gson.annotations.SerializedName
 
 // Esta es la clase que representa la respuesta completa del detalle del Pokémon
 data class PokedexDatailDataResponse(
-    @SerializedName("id") val id: String,
-    @SerializedName("name") val di: String,
-    @SerializedName("sprites") val sprites: sprites,
-    @SerializedName("stats") val pokedez: List<PokedexResponse>
+    @SerializedName("name") val diname: String,
+    @SerializedName("sprites") val sprites: sprites, //optengo la imagen
+    @SerializedName("stats") val pokedez: List<PokedexStatistics> //las estadisticas de atake
 
 )
 
 // Esta clase representa cada estadística (stat) del Pokémon
-data class PokedexResponse(
-    @SerializedName("base_stat") val baseStats: String,
-    @SerializedName("stat") val stat: StatDetail
+data class PokedexStatistics(
+     @SerializedName("base_stat") val baseStats: String, // el vivel de poder
+    @SerializedName("stat") val stat: StatNamePOder // entro ala lista de estadisticas
+
 )
 
 // Esta clase representa los detalles del nombre de la estadística
-data class StatDetail(
-    @SerializedName("name") val name: String
+data class StatNamePOder(
+    @SerializedName("name") val name: String// nombre de la estadistica
 )
 
+//url de la imagen
 data class  sprites( @SerializedName ("back_default") val url: String)
-/**
-{
-    // Extraer el ID del Pokémon desde la URL
-    val id: Int
-        get() = url.split("/".toRegex()).dropLast(1).last().toInt()
-}
-**/

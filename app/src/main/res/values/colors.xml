@@ -2,4 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="atake">#92D003</color>
+    <color name="defenza">#AF0404</color>
+    <color name="hp">#04CA0E</color>
+    <color name="speed">#4527A0</color>
 </resources>
