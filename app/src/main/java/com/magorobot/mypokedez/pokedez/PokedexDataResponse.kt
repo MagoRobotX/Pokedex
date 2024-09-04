@@ -2,12 +2,9 @@ package com.magorobot.mypokedez.pokedez
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
-
 data class PokedexDataResponse(
-   @SerializedName("results") val pokedex: List<PokedexItemResponse>
-
+    @SerializedName("results") val pokedex: List<PokedexItemResponse>
 )
-
 
 data class PokedexItemResponse(
     @SerializedName("name") val namepokemon: String,
@@ -17,7 +14,6 @@ data class PokedexItemResponse(
     val id: Int
         get() = url.split("/".toRegex()).dropLast(1).last().toInt()
 }
-
 /**
 data class spriterResponse(
     @SerializedName("sprites") val SpriImg: PokeImagenResponse

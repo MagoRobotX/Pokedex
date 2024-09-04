@@ -41,7 +41,45 @@ class PokedezListActivity : AppCompatActivity() {
         initUI()
     }
 
-    // Método para inicializar la interfaz de usuario
+    private fun initUI(){
+         // Inicializa el adaptador con una función lambda para la navegación
+        adapter = PokedexAdapter { navigateToDetail(it) }
+        // Indica al RecyclerView que el tamaño de su layout no cambiará
+        binding.rvPokedex.setHasFixedSize(true)
+        // Establece un GridLayoutManager como el layout manager del RecyclerView
+        binding.rvPokedex.layoutManager = GridLayoutManager(this, 3)
+        // Asigna el adaptador personalizado al RecyclerView
+        binding.rvPokedex.adapter = adapter
+
+        // Puedes cargar todos los Pokémon aquí o manejar la carga inicial sin filtro de búsqueda
+        loadAllPokemon()
+    }
+    // Método para cargar todos los Pokémon
+    private fun loadAllPokemon() {
+        // Mostrar la barra de progreso
+        binding.Progressbar.isVisible = true
+        // Lanzar una corrutina en el hilo de IO
+        CoroutineScope(Dispatchers.IO).launch {
+            // Realizar la llamada a la API para obtener todos los Pokémon
+            val myResponse: Response<PokedexDataResponse> =
+                retrofit.create(ApiService::class.java).getPokedex(pokedexName = String())
+            // Verifica si la respuesta de la API fue exitosa
+            if (myResponse.isSuccessful) {
+                val response: PokedexDataResponse? = myResponse.body()
+                if (response != null) {
+                    // Actualiza la UI en el hilo principal
+                    runOnUiThread {
+                        adapter.updaterList(response.pokedex)
+                        binding.Progressbar.isVisible = false
+                    }
+                }
+            } else {
+                Log.i("Magorobot", "No funciona :(")
+            }
+        }
+    }
+
+   /** // Método para inicializar la interfaz de usuario
     private fun initUI() {
         // Configurar el listener para el SearchView
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -50,9 +88,7 @@ class PokedezListActivity : AppCompatActivity() {
                 SearchByName(query.orEmpty())
                 return false
             }
-
             override fun onQueryTextChange(newText: String?) = false
-
         })
         // Inicializa el adaptador con una función lambda para la navegación
         adapter = PokedexAdapter { navigateToDetail(it) }
@@ -63,9 +99,9 @@ class PokedezListActivity : AppCompatActivity() {
         // Asigna el adaptador personalizado al RecyclerView // Este adaptador se encargará de crear y reciclar las vistas para cada elemento de la lista
         binding.rvPokedex.adapter = adapter
 
-    }
+    }**/
 
-    // Método para buscar Pokémon por nombre
+  /** // Método para buscar Pokémon por nombre
     private fun SearchByName(query: String) {
         // Mostrar la barra de progreso
         binding.Progressbar.isVisible = true
@@ -96,7 +132,7 @@ class PokedezListActivity : AppCompatActivity() {
                 // Imprime un mensaje de error en el log si la llamada a la API falló
                 Log.i("Magorobot", "No funciona :(")
         }
-    }
+    } **/
 
     // Método para obtener una instancia configurada de Retrofit
     private fun getRetrofit(): Retrofit {
