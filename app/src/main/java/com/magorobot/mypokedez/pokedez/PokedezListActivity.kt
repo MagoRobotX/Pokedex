@@ -59,63 +59,89 @@ class PokedezListActivity : AppCompatActivity() {
        // loadAllPokemon()
     }
     // Método para cargar todos los Pokémon
+private fun loadPokemon() {
+    // Lanzar una corrutina en el hilo de IO para operaciones de red y base de datos
+    CoroutineScope(Dispatchers.IO).launch {
+        // Mostrar la barra de progreso mientras se cargan los datos
+        binding.Progressbar.isVisible = true
 
-  private fun loadPokemon() {
-        CoroutineScope(Dispatchers.IO).launch {
-            binding.Progressbar.isVisible = true
+        // Intentar obtener Pokémon desde la base de datos local
+        val localPokemon = database.pokemonDao().getAllPokemon()
 
-            val localPokemon = database.pokemonDao().getAllPokemon()
+        // Si hay Pokémon en la base de datos local
+        if (localPokemon.isNotEmpty()) {
+            // Convertir los datos de la base de datos en objetos `PokedexItemResponse`
+            val pokedexList = localPokemon.map {
+                PokedexItemResponse(it.name, it.url)
+            }
+            // Actualizar la UI con la lista de Pokémon obtenida de la base de datos
+            updateUI(pokedexList)
+        } else {
+            try {
+                // Crear una instancia del servicio de API usando Retrofit
+                val apiService = retrofit.create(ApiService::class.java)
 
-            if (localPokemon.isNotEmpty()) {
-                val pokedexList = localPokemon.map {
-                    PokedexItemResponse(it.name, it.url)
-                }
-                updateUI(pokedexList)
-            } else {
-                try {
-                    val apiService = retrofit.create(ApiService::class.java)
-                    val response = apiService.getPokedex("")
+                // Realizar la llamada a la API para obtener la lista de Pokémon
+                val response = apiService.getPokedex("")
 
-                    if (response.isSuccessful && response.body() != null) {
-                        val pokedexList = response.body()!!.pokedex
+                // Si la respuesta de la API es exitosa y no es nula
+                if (response.isSuccessful && response.body() != null) {
+                    // Obtener la lista de Pokémon desde la respuesta de la API
+                    val pokedexList = response.body()!!.pokedex
 
-                        // Save to database
-                        pokedexList.forEach { pokemon ->
-                            val detailResponse = apiService.getPokedez(pokemon.namepokemon)
-                            if (detailResponse.isSuccessful && detailResponse.body() != null) {
-                                val detail = detailResponse.body()!!
-                                val pokemonEntity = PokemonEntity(
-                                    id = pokemon.id,
-                                    name = pokemon.namepokemon,
-                                    url = pokemon.url,
-                                    imageUrl = detail.sprites.url,
-                                    hp = detail.pokedez.find { it.stat.name == "hp" }?.baseStats?.toIntOrNull() ?: 0,
-                                    attack = detail.pokedez.find { it.stat.name == "attack" }?.baseStats?.toIntOrNull() ?: 0,
-                                    defense = detail.pokedez.find { it.stat.name == "defense" }?.baseStats?.toIntOrNull() ?: 0,
-                                    speed = detail.pokedez.find { it.stat.name == "speed" }?.baseStats?.toIntOrNull() ?: 0
-                                )
-                                database.pokemonDao().insertPokemon(pokemonEntity)
-                            }
+                    // Guardar cada Pokémon en la base de datos local
+                    pokedexList.forEach { pokemon ->
+                        // Obtener los detalles de cada Pokémon desde la API
+                        val detailResponse = apiService.getPokedez(pokemon.namepokemon)
+
+                        // Si la respuesta de los detalles es exitosa y no es nula
+                        if (detailResponse.isSuccessful && detailResponse.body() != null) {
+                            // Obtener los detalles del Pokémon
+                            val detail = detailResponse.body()!!
+
+                            // Crear una entidad de Pokémon para la base de datos
+                            val pokemonEntity = PokemonEntity(
+                                id = pokemon.id,
+                                name = pokemon.namepokemon,
+                                url = pokemon.url,
+                                imageUrl = detail.sprites.url,
+                                hp = detail.pokedez.find { it.stat.name == "hp" }?.baseStats?.toIntOrNull() ?: 0,
+                                attack = detail.pokedez.find { it.stat.name == "attack" }?.baseStats?.toIntOrNull() ?: 0,
+                                defense = detail.pokedez.find { it.stat.name == "defense" }?.baseStats?.toIntOrNull() ?: 0,
+                                speed = detail.pokedez.find { it.stat.name == "speed" }?.baseStats?.toIntOrNull() ?: 0
+                            )
+                            // Insertar la entidad en la base de datos
+                            database.pokemonDao().insertPokemon(pokemonEntity)
                         }
-
-                        updateUI(pokedexList)
-                    } else {
-                        Log.e("PokedezListActivity", "Error: ${response.errorBody()?.string()}")
-                        updateUI(emptyList())
                     }
-                } catch (e: Exception) {
-                    Log.e("PokedezListActivity", "Exception: ${e.message}")
+
+                    // Actualizar la UI con la lista de Pokémon obtenida de la API
+                    updateUI(pokedexList)
+                } else {
+                    // Si la respuesta de la API no es exitosa, registrar el error y actualizar la UI con una lista vacía
+                    Log.e("PokedezListActivity", "Error: ${response.errorBody()?.string()}")
                     updateUI(emptyList())
                 }
+            } catch (e: Exception) {
+                // Si ocurre una excepción, registrar el error y actualizar la UI con una lista vacía
+                Log.e("PokedezListActivity", "Exception: ${e.message}")
+                updateUI(emptyList())
             }
         }
     }
+}
+
     private suspend fun updateUI(pokedexList: List<PokedexItemResponse>) {
-        withContext(Dispatchers.Main) {
-            adapter.updaterList(pokedexList)
-            binding.Progressbar.isVisible = false
-        }
+    // Cambiar al hilo principal para actualizar la UI, ya que las operaciones de UI deben ejecutarse en el hilo principal
+    withContext(Dispatchers.Main) {
+        // Actualizar la lista en el adaptador con los nuevos datos de Pokémon
+        adapter.updaterList(pokedexList)
+
+        // Ocultar la barra de progreso después de que se ha actualizado la lista
+        binding.Progressbar.isVisible = false
     }
+}
+
 
     // Método para obtener una instancia configurada de Retrofit
     private fun getRetrofit(): Retrofit {
