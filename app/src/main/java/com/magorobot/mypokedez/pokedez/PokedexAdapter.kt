@@ -8,7 +8,6 @@ import com.bumptech.glide.Glide
 import com.magorobot.mypokedez.R
 import kotlinx.coroutines.NonDisposableHandle.parent
 import retrofit2.Response
-
 // Definición de la clase PokedexAdapter que hereda de RecyclerView.Adapter
 class PokedexAdapter(
     // Lista de elementos Pokédex, inicializada como una lista vacía

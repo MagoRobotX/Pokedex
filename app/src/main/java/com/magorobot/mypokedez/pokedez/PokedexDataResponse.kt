@@ -14,6 +14,7 @@ data class PokedexItemResponse(
     val id: Int
         get() = url.split("/".toRegex()).dropLast(1).last().toInt()
 }
+
 /**
 data class spriterResponse(
     @SerializedName("sprites") val SpriImg: PokeImagenResponse

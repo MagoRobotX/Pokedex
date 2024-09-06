@@ -3,7 +3,7 @@ package com.magorobot.mypokedez.pokedez
 import com.google.gson.annotations.SerializedName
 
 
-// Esta es la clase que representa la respuesta completa del detalle del Pokémon
+/// Esta es la clase que representa la respuesta completa del detalle del Pokémon
 data class PokedexDatailDataResponse(
     @SerializedName("name") val diname: String,
     @SerializedName("sprites") val sprites: sprites, //optengo la imagen

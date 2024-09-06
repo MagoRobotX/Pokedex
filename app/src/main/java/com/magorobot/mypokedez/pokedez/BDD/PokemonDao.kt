@@ -4,19 +4,19 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PokemonDao {
+    @Query("SELECT * FROM pokemon")
+    fun getAllPokemon(): List<PokemonEntity>
+
+    @Query("SELECT * FROM pokemon WHERE name LIKE :name")
+    fun getPokemonByName(name: String): PokemonEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPokemon(pokemon: PokemonEntity)
+    fun insertPokemon(pokemon: PokemonEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(pokemonList: List<PokemonEntity>)
-
-    @Query("SELECT * FROM pokemon_table")
-    suspend fun getAllPokemon(): List<PokemonEntity>
-
-    @Query("SELECT * FROM pokemon_table WHERE id = :id")
-    suspend fun getPokemonById(id: Int): PokemonEntity?
+    @Query("DELETE FROM pokemon")
+    fun deleteAllPokemon()
 }
