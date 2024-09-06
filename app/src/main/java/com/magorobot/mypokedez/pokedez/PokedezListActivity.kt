@@ -9,7 +9,10 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.room.Room
 import com.magorobot.mypokedez.databinding.ActivityPokedezListBinding
+import com.magorobot.mypokedez.pokedez.BDD.PokemonDatabase
+import com.magorobot.mypokedez.pokedez.BDD.PokemonEntity
 import com.magorobot.mypokedez.pokedez.DetailPokemonActivity.Companion.EXTRA_ID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,35 +32,42 @@ class PokedezListActivity : AppCompatActivity() {
     // Declara una propiedad para el adaptador del RecyclerView, que se inicializará más tarde
     private lateinit var adapter: PokedexAdapter
 
+    //inicializ la base de datos
+    private lateinit var database: PokemonDatabase
+
     // Método llamado cuando se crea la actividad
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Inflar el layout y establecerlo como contenido de la actividad
         binding = ActivityPokedezListBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        // Inicializar la base de datos
+        database = PokemonDatabase.getDatabase(this)
         // Inicializar Retrofit
         retrofit = getRetrofit()
         // Inicializar la interfaz de usuario
         initUI()
     }
 
-    private fun initUI(){
-         // Inicializa el adaptador con una función lambda para la navegación
-        adapter = PokedexAdapter { navigateToDetail(it) }
+    private fun initUI() {
+        // Inicializa el adaptador con una función lambda para la navegación
+        // adapter = PokedexAdapter { navigateToDetail(it) }
         // Indica al RecyclerView que el tamaño de su layout no cambiará
         binding.rvPokedex.setHasFixedSize(true)
         // Establece un GridLayoutManager como el layout manager del RecyclerView
         binding.rvPokedex.layoutManager = GridLayoutManager(this, 3)
         // Asigna el adaptador personalizado al RecyclerView
         binding.rvPokedex.adapter = adapter
-
+        // Puedes cargar desde la base de datos si no hay conexión
+        loadFromDatabase()
         // Puedes cargar todos los Pokémon aquí o manejar la carga inicial sin filtro de búsqueda
         loadAllPokemon()
     }
+
     // Método para cargar todos los Pokémon
     private fun loadAllPokemon() {
         // Mostrar la barra de progreso
-        binding.Progressbar.isVisible = true
+        //binding.Progressbar.isVisible = true
         // Lanzar una corrutina en el hilo de IO
         CoroutineScope(Dispatchers.IO).launch {
             // Realizar la llamada a la API para obtener todos los Pokémon
@@ -67,79 +77,102 @@ class PokedezListActivity : AppCompatActivity() {
             if (myResponse.isSuccessful) {
                 val response: PokedexDataResponse? = myResponse.body()
                 if (response != null) {
+                    val pokemonEntities = response.pokedex.map { pokemon ->
+                        PokemonEntity(
+                            id = pokemon.id,
+                            name = pokemon.namepokemon,
+                            imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${pokemon.id}.png"
+                        )
+                    }
+                    database.pokemonDao().insertAll(pokemonEntities)
+
                     // Actualiza la UI en el hilo principal
                     runOnUiThread {
                         adapter.updaterList(response.pokedex)
-                        binding.Progressbar.isVisible = false
+                       // binding.Progressbar.isVisible = false
+
                     }
+                } else {
+                    Log.i("Magorobot", "No funciona :(")
                 }
-            } else {
-                Log.i("Magorobot", "No funciona :(")
+            }
+        }
+    }
+    /** // Método para inicializar la interfaz de usuario
+    private fun initUI() {
+    // Configurar el listener para el SearchView
+    binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+    override fun onQueryTextSubmit(query: String?): Boolean {
+    // Llama a la función para buscar superhéroes por nombre cuando se envía una consulta
+    SearchByName(query.orEmpty())
+    return false
+    }
+    override fun onQueryTextChange(newText: String?) = false
+    })
+    // Inicializa el adaptador con una función lambda para la navegación
+    adapter = PokedexAdapter { navigateToDetail(it) }
+    // Indica al RecyclerView que el tamaño de su layout no cambiará // Esto permite optimizaciones internas en el RecyclerView
+    binding.rvPokedex.setHasFixedSize(true)
+    // Establece un GridLayoutManager como el layout manager del RecyclerView // Esto organiza los elementos en una cuadrícula de 3 columnas
+    binding.rvPokedex.layoutManager = GridLayoutManager(this, 3) // 2 columnas en la cuadrícula
+    // Asigna el adaptador personalizado al RecyclerView // Este adaptador se encargará de crear y reciclar las vistas para cada elemento de la lista
+    binding.rvPokedex.adapter = adapter
+
+    }**/
+
+    /** // Método para buscar Pokémon por nombre
+    private fun SearchByName(query: String) {
+    // Mostrar la barra de progreso
+    binding.Progressbar.isVisible = true
+    // Lanzar una corrutina en el hilo de IO
+    CoroutineScope(Dispatchers.IO).launch {
+    // Realizar la llamada a la API
+    var myResponse: Response<PokedexDataResponse> =
+    retrofit.create(ApiService::class.java).getPokedex(query) // Realiza una llamada a la API usando Retrofit para obtener datos de Pokémon
+    // Verifica si la respuesta de la API fue exitosa
+    if (myResponse.isSuccessful) {
+    // Imprime un mensaje de éxito en el log
+    Log.i("Magorobot", "funciona Pokemon :)")
+    // Extrae el cuerpo de la respuesta
+    val response: PokedexDataResponse? = myResponse.body()
+    // Verifica si el cuerpo de la respuesta no es nulo
+    if (response != null) {
+    // Imprime la respuesta completa en el log
+    Log.i("Magorobot", response.toString())
+    // Actualiza la UI en el hilo principal
+    runOnUiThread {
+    // Actualiza la lista en el adaptador con los nuevos datos de Pokémon
+    adapter.updaterList(response.pokedex)
+    // Oculta la barra de progreso
+    binding.Progressbar.isVisible = false
+    }
+    }
+    } else
+    // Imprime un mensaje de error en el log si la llamada a la API falló
+    Log.i("Magorobot", "No funciona :(")
+    }
+    } **/
+    private fun loadFromDatabase() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val pokemonList = database.pokemonDao().getAllPokemon()
+            val pokedexItems = pokemonList.map { pokemonEntity ->
+                PokedexItemResponse(
+                    pokemonEntity.name,
+                    "https://pokeapi.co/api/v2/pokemon/${pokemonEntity.id}/"
+                )
+            }
+
+            runOnUiThread {
+                adapter.updaterList(pokedexItems)
+                binding.Progressbar.isVisible = false
             }
         }
     }
 
-   /** // Método para inicializar la interfaz de usuario
-    private fun initUI() {
-        // Configurar el listener para el SearchView
-        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                // Llama a la función para buscar superhéroes por nombre cuando se envía una consulta
-                SearchByName(query.orEmpty())
-                return false
-            }
-            override fun onQueryTextChange(newText: String?) = false
-        })
-        // Inicializa el adaptador con una función lambda para la navegación
-        adapter = PokedexAdapter { navigateToDetail(it) }
-        // Indica al RecyclerView que el tamaño de su layout no cambiará // Esto permite optimizaciones internas en el RecyclerView
-        binding.rvPokedex.setHasFixedSize(true)
-        // Establece un GridLayoutManager como el layout manager del RecyclerView // Esto organiza los elementos en una cuadrícula de 3 columnas
-        binding.rvPokedex.layoutManager = GridLayoutManager(this, 3) // 2 columnas en la cuadrícula
-        // Asigna el adaptador personalizado al RecyclerView // Este adaptador se encargará de crear y reciclar las vistas para cada elemento de la lista
-        binding.rvPokedex.adapter = adapter
-
-    }**/
-
-  /** // Método para buscar Pokémon por nombre
-    private fun SearchByName(query: String) {
-        // Mostrar la barra de progreso
-        binding.Progressbar.isVisible = true
-        // Lanzar una corrutina en el hilo de IO
-        CoroutineScope(Dispatchers.IO).launch {
-            // Realizar la llamada a la API
-            var myResponse: Response<PokedexDataResponse> =
-                retrofit.create(ApiService::class.java).getPokedex(query) // Realiza una llamada a la API usando Retrofit para obtener datos de Pokémon
-            // Verifica si la respuesta de la API fue exitosa
-            if (myResponse.isSuccessful) {
-                // Imprime un mensaje de éxito en el log
-                Log.i("Magorobot", "funciona Pokemon :)")
-                // Extrae el cuerpo de la respuesta
-                val response: PokedexDataResponse? = myResponse.body()
-                // Verifica si el cuerpo de la respuesta no es nulo
-                if (response != null) {
-                    // Imprime la respuesta completa en el log
-                    Log.i("Magorobot", response.toString())
-                     // Actualiza la UI en el hilo principal
-                    runOnUiThread {
-                        // Actualiza la lista en el adaptador con los nuevos datos de Pokémon
-                        adapter.updaterList(response.pokedex)
-                         // Oculta la barra de progreso
-                        binding.Progressbar.isVisible = false
-                    }
-                }
-            } else
-                // Imprime un mensaje de error en el log si la llamada a la API falló
-                Log.i("Magorobot", "No funciona :(")
-        }
-    } **/
-
     // Método para obtener una instancia configurada de Retrofit
     private fun getRetrofit(): Retrofit {
-        return Retrofit
-            .Builder()
+        return Retrofit.Builder()
             .baseUrl("https://pokeapi.co/api/v2/") // Base URL para la API
-            //.baseUrl("https://superheroapi.com/") // Base URL para la API
             .addConverterFactory(GsonConverterFactory.create())// Conversor de JSON a objetos Kotlin
             .build()
     }

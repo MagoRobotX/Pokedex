@@ -122,7 +122,7 @@ private fun Int.dpToPx(context: Context): Int {
     return (this * density).toInt()
 }
 
-private fun getRetrofit(): Retrofit {
+fun getRetrofit(): Retrofit {
     return Retrofit.Builder()
         .baseUrl("https://pokeapi.co/api/v2/") // Base URL para la API
         .addConverterFactory(GsonConverterFactory.create())// Conversor de JSON a objetos Kotlin
